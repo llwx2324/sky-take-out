@@ -79,4 +79,15 @@ public class DishController {
         DishVO dishVO = dishService.getByIdWithFlavor(id);
         return Result.success(dishVO);
     }
+
+    /**
+     * 修改商品售卖状态
+     */
+    @PostMapping("/status/{status}")
+    @ApiOperation("修改商品售卖状态")
+    public Result modifyStatus(@PathVariable Integer status, @RequestParam Long id) {
+        log.info("修改商品售卖状态: {}, {}", status, id);
+        dishService.modifyStatus(status, id);
+        return Result.success();
+    }
 }

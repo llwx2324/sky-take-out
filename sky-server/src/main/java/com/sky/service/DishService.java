@@ -36,4 +36,11 @@ public interface DishService{
      * @return
      */
     DishVO getByIdWithFlavor(Long id);
+
+    /**
+     * 修改商品售卖状态
+     * @param status
+     * @param id
+     */
+    void modifyStatus(Integer status, Long id);
 }

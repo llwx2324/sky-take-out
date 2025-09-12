@@ -6,11 +6,13 @@ import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
+import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
+import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -19,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -30,6 +33,8 @@ public class DishServiceImpl implements DishService {
     private DishFlavorMapper dishFlavorMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private SetmealMapper setmealMapper;
 
     @Override
     @Transactional
@@ -100,11 +105,7 @@ public class DishServiceImpl implements DishService {
         }
     }
 
-    /**
-     * 根据id查询菜品和对应的口味信息
-     * @param id
-     * @return
-     */
+
     @Override
     public DishVO getByIdWithFlavor(Long id) {
         Dish dish = dishMapper.getById(id);
@@ -118,6 +119,33 @@ public class DishServiceImpl implements DishService {
         List<DishFlavor> flavors = dishFlavorMapper.getByDishId(id);
         dishVO.setFlavors(flavors);
         return dishVO;
+    }
+
+    @Override
+    public void modifyStatus(Integer status, Long id) {
+        Dish dish = new Dish();
+        dish.setId(id);
+        dish.setStatus(status);
+        //若status为0：菜品停售，菜品所对应的套餐也要停售
+        if (status == 0) {
+            List<SetmealDish> list = setmealDishMapper.getByDishId(id);
+            //获取套餐菜品关系列表中的所有套餐id
+            List<Long> setmealIds = new ArrayList<>();
+            if (list != null && !list.isEmpty()) {
+                setmealIds = list.stream().map(SetmealDish::getSetmealId).distinct().toList();
+            }
+            //根据套餐id创建状态为0的套餐对象
+            if (setmealIds.isEmpty()) {
+                setmealIds.forEach(sid -> {;
+                    Setmeal setmeal = new Setmeal();
+                    setmeal.setId(sid);
+                    setmeal.setStatus(0);
+                    setmealMapper.update(setmeal);
+                });
+            }
+
+        }
+        dishMapper.update(dish);
     }
 
 }
