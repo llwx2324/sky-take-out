@@ -58,6 +58,7 @@ public class AutoFillAspect {
                 setCreateTime.invoke(object, now);
                 setUpdateUser.invoke(object, currentId);
                 setUpdateTime.invoke(object, now);
+                log.info("新增操作自动填充完成...");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -67,6 +68,7 @@ public class AutoFillAspect {
                 Method setUpdateTime = object.getClass().getMethod("setUpdateTime", LocalDateTime.class);
                 setUpdateUser.invoke(object, currentId);
                 setUpdateTime.invoke(object, now);
+                log.info("修改操作自动填充完成...");
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
