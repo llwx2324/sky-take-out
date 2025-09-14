@@ -90,4 +90,15 @@ public class DishController {
         dishService.modifyStatus(status, id);
         return Result.success();
     }
+
+    /**
+     * 根据分类id查询菜品
+     */
+    @GetMapping("/list")
+    @ApiOperation("根据分类id查询菜品")
+    public Result<List<DishVO>> list(Integer categoryId) {
+        log.info("根据分类id查询菜品: {}", categoryId);
+        List<DishVO> dishList = dishService.listByCategoryId(categoryId);
+        return Result.success(dishList);
+    }
 }

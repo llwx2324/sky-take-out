@@ -14,4 +14,9 @@ public interface SetmealDishMapper {
      */
     @Select("select * from setmeal_dish where dish_id = #{dishId}")
     List<SetmealDish> getByDishId(Long dishId);
+
+    /**
+     * 新增套餐菜品关联数据
+     */
+    void insertBatch(List<SetmealDish> setmealDishList);
 }
