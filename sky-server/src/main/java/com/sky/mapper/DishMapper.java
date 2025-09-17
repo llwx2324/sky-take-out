@@ -29,6 +29,7 @@ public interface DishMapper {
     @AutoFill(OperationType.INSERT)
     void insert(Dish dish);
 
+
     /**
      * 分页查询
      * @param dishPageQueryDTO

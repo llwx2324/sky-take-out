@@ -52,7 +52,7 @@ public interface SetmealMapper {
 
     /**
      * 根据id批量删除套餐
-     * @param categoryId
+     * @param ids
      * @return
      */
     void deleteByIds(List<Long> ids);

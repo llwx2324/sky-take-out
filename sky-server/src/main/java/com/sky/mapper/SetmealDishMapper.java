@@ -24,4 +24,10 @@ public interface SetmealDishMapper {
      * 根据套餐id批量删除套餐菜品关联数据
      */
     void deleteBySetmealIds(List<Long> ids);
+
+    /**
+     * 根据套餐id查询套餐菜品关联数据
+     */
+    @Select("select * from setmeal_dish where setmeal_id = #{id}")
+    List<SetmealDish> getBySetmealId(Long id);
 }
