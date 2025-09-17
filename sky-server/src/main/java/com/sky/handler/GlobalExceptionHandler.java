@@ -3,6 +3,7 @@ package com.sky.handler;
 import com.sky.constant.MessageConstant;
 import com.sky.exception.BaseException;
 import com.sky.exception.SetmealDeleteException;
+import com.sky.exception.SetmealModifyStatusException;
 import com.sky.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -51,6 +52,15 @@ public class GlobalExceptionHandler {
     @ExceptionHandler
     public Result SetmealDeleteExceptionHandler(SetmealDeleteException se){
         log.error("删除时的套餐状态异常：{}", se.getMessage());
+        return Result.error(se.getMessage());
+    }
+
+    /**
+     * 修改套餐状态时的异常
+     */
+    @ExceptionHandler
+    public Result setmealModifyStatusExceptionHandler(SetmealModifyStatusException se) {
+        log.error("修改套餐状态时的异常：{}", se.getMessage());
         return Result.error(se.getMessage());
     }
 }

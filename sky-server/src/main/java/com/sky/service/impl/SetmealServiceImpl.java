@@ -8,6 +8,8 @@ import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.SetmealDeleteException;
+import com.sky.exception.SetmealModifyStatusException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
@@ -27,6 +29,8 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setmealMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
+    @Autowired
+    private DishMapper dishMapper;
 
     @Override
     @Transactional
@@ -108,4 +112,32 @@ public class SetmealServiceImpl implements SetmealService {
             setmealDishMapper.insertBatch(setmealDishes);
         }
     }
+
+    @Override
+    public void modifyStatus(Integer status, Integer id) {
+        //如果套餐内有停售菜品，则不能起售
+        if(status == 1){
+            List<SetmealDish> setmealDishes = setmealDishMapper.getBySetmealId(Long.valueOf(id));
+            if(setmealDishes != null && setmealDishes.size() > 0){
+                for (SetmealDish setmealDish : setmealDishes) {
+                    Dish dish = dishMapper.getById(setmealDish.getDishId());
+                    if(dish != null && dish.getStatus() == 0){
+                        throw new SetmealModifyStatusException("套餐内有停售菜品，不能起售");
+                    }
+                }
+                //如果都没有停售菜品，则可以起售
+                Setmeal setmeal = new Setmeal();
+                setmeal.setId(Long.valueOf(id));
+                setmeal.setStatus(status);
+                setmealMapper.update(setmeal);
+            }
+        }else{
+            //如果是停售，则直接修改状态
+            Setmeal setmeal = new Setmeal();
+            setmeal.setId(Long.valueOf(id));
+            setmeal.setStatus(status);
+            setmealMapper.update(setmeal);
+        }
+    }
+
 }
