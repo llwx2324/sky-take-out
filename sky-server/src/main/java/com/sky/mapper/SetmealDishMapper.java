@@ -19,4 +19,9 @@ public interface SetmealDishMapper {
      * 新增套餐菜品关联数据
      */
     void insertBatch(List<SetmealDish> setmealDishList);
+
+    /**
+     * 根据套餐id批量删除套餐菜品关联数据
+     */
+    void deleteBySetmealIds(List<Long> ids);
 }
