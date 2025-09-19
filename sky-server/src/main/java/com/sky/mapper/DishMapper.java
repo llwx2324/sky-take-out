@@ -66,4 +66,10 @@ public interface DishMapper {
     @Select("select * from dish where category_id = #{categoryId} and status = 1 order by update_time desc")
     List<DishVO> listByCategoryId(Integer categoryId);
 
+    /**
+     * 动态条件查询菜品
+     * @param dish
+     * @return
+     */
+    List<Dish> list(Dish dish);
 }

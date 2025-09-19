@@ -37,13 +37,20 @@ logging:
 sky:
   jwt:
     # 设置jwt签名加密时使用的秘钥
-    admin-secret-key: itcast
+    admin-secret-key: dapang
     # 设置jwt过期时间
     admin-ttl: 14400000
     # 设置前端传递过来的令牌名称
     admin-token-name: token
+
+    user-secret-key: erpang
+    user-ttl: 14400000
+    user-token-name: authentication
   alioss:
     access-key-id: ${access-key-id}
     access-key-secret: ${access-key-secret}
     bucket-name: ${bucket-name}
     endpoint: ${endpoint}
+  wechat:
+    appid: ${appid}
+    secret: ${secret}
