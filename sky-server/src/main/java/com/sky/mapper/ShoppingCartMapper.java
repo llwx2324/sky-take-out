@@ -24,13 +24,6 @@ public interface ShoppingCartMapper {
      */
     void update(ShoppingCart cart);
 
-    /**
-     * 新增购物车商品
-     * @param shoppingCart
-     */
-    @Insert("INSERT INTO shopping_cart (user_id, name, image, dish_id, setmeal_id, dish_flavor, number, amount, create_time) " +
-            "VALUES (#{userId}, #{name}, #{image}, #{dishId}, #{setmealId}, #{dishFlavor}, #{number}, #{amount}, #{createTime})")
-    void insert(ShoppingCart shoppingCart);
 
     /**
      * 根据用户id删除购物车商品
@@ -44,4 +37,10 @@ public interface ShoppingCartMapper {
      */
     @Delete("DELETE FROM shopping_cart WHERE id = #{id}")
     void deleteById(Long id);
+
+    /**
+     * 批量插入购物车数据
+     * @param shoppingCartList
+     */
+    void insertBatch(List<ShoppingCart> shoppingCartList);
 }

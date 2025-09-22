@@ -1,16 +1,21 @@
 package com.sky.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.*;
 import com.sky.exception.OrderBusinessException;
 import com.sky.mapper.*;
+import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -97,6 +102,8 @@ public class OrderServiceImpl implements OrderService {
      * @param ordersPaymentDTO
      * @return
      */
+    @Override
+    @Transactional
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         // 当前登录用户id
         Long userId = BaseContext.getCurrentId();
@@ -132,6 +139,7 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param outTradeNo
      */
+    @Transactional
     public void paySuccess(String outTradeNo) {
 
         // 根据订单号查询订单
@@ -146,5 +154,107 @@ public class OrderServiceImpl implements OrderService {
                 .build();
 
         orderMapper.update(orders);
+    }
+
+    /**
+     * 历史订单查询
+     * @return
+     */
+    @Override
+    @Transactional
+    public PageResult historyOrders(OrdersPageQueryDTO ordersPageQueryDTO){
+        List<OrderVO> orderVOList = new ArrayList<>();
+
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize()); //插件会拦截下一次查询
+
+        // 当前登录用户id
+        Long userId = BaseContext.getCurrentId();
+        ordersPageQueryDTO.setUserId(userId);
+        // 查询订单 -- 只是查询出来某页的orders
+        Page<Orders> pageOrdersList = orderMapper.pageQueryHistoryOrders(ordersPageQueryDTO);
+        // 查询订单明细
+        for(Orders orders : pageOrdersList){ // 于是查询出来某页的orders，vo也是某页的vo
+            List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(orders, orderVO);
+            orderVO.setOrderDetailList(orderDetailList);
+            orderVOList.add(orderVO);
+        }
+        return new PageResult(pageOrdersList.getTotal(), orderVOList); //orderVOList也只是某页的orderVO列表
+    }
+
+    /**
+     * 根据id查询订单详情
+     * @param id
+     * @return
+     */
+    @Override
+    @Transactional
+    public OrderVO getByIdWithOrderDetail(Long id){
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //查询订单明细
+        List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
+        //封装vo
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(orders, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+        return orderVO;
+    }
+
+    /**
+     * 取消订单
+     * @param id
+     */
+    @Override
+    @Transactional
+    public void cancel(Long id){
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有待付款、待接单、已接单、派送中的订单才能取消
+        if(!(orders.getStatus().equals(Orders.PENDING_PAYMENT) || orders.getStatus().equals(Orders.TO_BE_CONFIRMED)
+                || orders.getStatus().equals(Orders.CONFIRMED) || orders.getStatus().equals(Orders.DELIVERY_IN_PROGRESS))){
+            throw new OrderBusinessException("该订单不能取消");
+        }
+        //更新订单状态为已取消
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 再来一单
+     * @param id
+     */
+    @Override
+    @Transactional
+    public void repetition(Long id){
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //查询订单明细
+        List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
+        if(orderDetailList == null || orderDetailList.size() == 0){
+            throw new OrderBusinessException("订单无菜品，不能再来一单");
+        }
+        //将订单明细数据添加到购物车
+        Long userId = BaseContext.getCurrentId();
+        List<ShoppingCart> shoppingCartList = new ArrayList<>();
+        for(OrderDetail orderDetail : orderDetailList){
+            ShoppingCart shoppingCart = new ShoppingCart();
+            BeanUtils.copyProperties(orderDetail, shoppingCart);
+            shoppingCart.setUserId(userId);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCartList.add(shoppingCart);
+        }
+        shoppingCartMapper.insertBatch(shoppingCartList);
     }
 }
