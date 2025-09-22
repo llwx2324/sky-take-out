@@ -12,6 +12,7 @@ import com.sky.result.PageResult;
 import com.sky.service.OrderService;
 import com.sky.utils.WeChatPayUtil;
 import com.sky.vo.OrderPaymentVO;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import org.springframework.beans.BeanUtils;
@@ -344,5 +345,58 @@ public class OrderServiceImpl implements OrderService {
         //更新订单状态为派送中
         orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
         orderMapper.update(orders);
+    }
+
+    @Override
+    public void complete(Long id) {
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if (orders == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有派送中的订单才能完成
+        if (!orders.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException("该订单不能完成");
+        }
+        //更新订单状态为已完成
+        orders.setStatus(Orders.COMPLETED);
+        orders.setDeliveryTime(LocalDateTime.now());
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void adminCancel(OrdersCancelDTO ordersCancelDTO) {
+        //查询订单
+        Orders orders = orderMapper.getById(ordersCancelDTO.getId());
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有待付款、已接单、派送中、已完成的订单才能取消
+        if(!(orders.getStatus().equals(Orders.PENDING_PAYMENT) || orders.getStatus().equals(Orders.CONFIRMED)
+                || orders.getStatus().equals(Orders.DELIVERY_IN_PROGRESS) || orders.getStatus().equals(Orders.COMPLETED))){
+            throw new OrderBusinessException("该订单不能取消");
+        }
+        //更新订单状态为已取消
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelTime(LocalDateTime.now());
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
+        //更新支付状态为退款
+        if(orders.getPayStatus().equals(Orders.PAID)){
+            orders.setPayStatus(Orders.REFUND);
+        }
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public OrderStatisticsVO orderStatistics() {
+        //统计待接单、已接单、派送中的订单数
+        Integer toBeConfirmed = orderMapper.countByStatus(Orders.TO_BE_CONFIRMED);
+        Integer confirmed = orderMapper.countByStatus(Orders.CONFIRMED);
+        Integer deliveryInProgress = orderMapper.countByStatus(Orders.DELIVERY_IN_PROGRESS);
+        OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
+        orderStatisticsVO.setToBeConfirmed(toBeConfirmed);
+        orderStatisticsVO.setConfirmed(confirmed);
+        orderStatisticsVO.setDeliveryInProgress(deliveryInProgress);
+        return orderStatisticsVO;
     }
 }
