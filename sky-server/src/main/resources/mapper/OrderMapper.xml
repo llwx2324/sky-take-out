@@ -43,7 +43,7 @@
         </set>
         where id=#{id}
     </update>
-    <select id="pageQueryHistoryOrders" resultType="com.sky.entity.Orders">
+    <select id="pageQuery" resultType="com.sky.entity.Orders">
         select * from orders
         <where>
             <if test="userId != null">
@@ -62,7 +62,7 @@
                 and status = #{status}
             </if>
             <if test="phone != null and phone != ''">
-                and phone = #{phone}
+                and phone like concat('%',#{phone},'%')
             </if>
         </where>
         order by order_time desc

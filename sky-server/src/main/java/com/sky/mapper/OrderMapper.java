@@ -38,11 +38,11 @@ public interface OrderMapper {
 
 
     /**
-     * 分页查询历史订单
+     * 分页查询
      * @param ordersPageQueryDTO
      * @return
      */
-    Page<Orders> pageQueryHistoryOrders(OrdersPageQueryDTO ordersPageQueryDTO);
+    Page<Orders> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
 
     /**
      * 根据id查询订单

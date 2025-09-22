@@ -171,7 +171,7 @@ public class OrderServiceImpl implements OrderService {
         Long userId = BaseContext.getCurrentId();
         ordersPageQueryDTO.setUserId(userId);
         // 查询订单 -- 只是查询出来某页的orders
-        Page<Orders> pageOrdersList = orderMapper.pageQueryHistoryOrders(ordersPageQueryDTO);
+        Page<Orders> pageOrdersList = orderMapper.pageQuery(ordersPageQueryDTO);
         // 查询订单明细
         for(Orders orders : pageOrdersList){ // 于是查询出来某页的orders，vo也是某页的vo
             List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
@@ -256,5 +256,38 @@ public class OrderServiceImpl implements OrderService {
             shoppingCartList.add(shoppingCart);
         }
         shoppingCartMapper.insertBatch(shoppingCartList);
+    }
+
+    /**
+     * 订单搜索 -- S端
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    @Override
+    @Transactional
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO){
+        List<OrderVO> orderVOList = new ArrayList<>();
+
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+
+        // 查询订单 -- 只是查询出来某页的orders
+        Page<Orders> pageOrdersList = orderMapper.pageQuery(ordersPageQueryDTO);
+        // 查询订单明细，将订单明细的菜品和数量拼接成orderDishes，然后封装到vo
+        for(Orders orders : pageOrdersList){
+            List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
+            StringBuilder orderDishes = new StringBuilder();
+            for(OrderDetail orderDetail : orderDetailList){
+                orderDishes.append(orderDetail.getName()).append("x").append(orderDetail.getNumber()).append(",");
+            }
+            if(orderDishes.length() > 0){
+                orderDishes.deleteCharAt(orderDishes.length() - 1); //删除最后一个逗号
+            }
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(orders, orderVO);
+            orderVO.setOrderDishes(orderDishes.toString());
+            orderVOList.add(orderVO);
+        }
+
+        return new PageResult(pageOrdersList.getTotal(), orderVOList);
     }
 }
