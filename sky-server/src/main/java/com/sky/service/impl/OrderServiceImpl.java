@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.*;
 import com.sky.exception.OrderBusinessException;
 import com.sky.mapper.*;
@@ -308,6 +305,24 @@ public class OrderServiceImpl implements OrderService {
         }
         //更新订单状态为已接单
         orders.setStatus(Orders.CONFIRMED);
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void rejection(OrdersRejectionDTO ordersRejectionDTO) {
+        //查询订单
+        Orders orders = orderMapper.getById(ordersRejectionDTO.getId());
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有待接单的订单才能拒单
+        if(!orders.getStatus().equals(Orders.TO_BE_CONFIRMED)){
+            throw new OrderBusinessException("该订单不能拒单");
+        }
+        //更新订单状态为已取消
+        orders.setStatus(Orders.CANCELLED);
+        orders.setCancelTime(LocalDateTime.now());
+        orders.setCancelReason(ordersRejectionDTO.getRejectionReason());
         orderMapper.update(orders);
     }
 }
