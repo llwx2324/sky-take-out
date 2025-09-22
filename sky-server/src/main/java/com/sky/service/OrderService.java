@@ -72,4 +72,10 @@ public interface OrderService {
      * @param ordersRejectionDTO
      */
     void rejection(OrdersRejectionDTO ordersRejectionDTO);
+
+    /**
+     * 派送订单
+     * @param id
+     */
+    void delivery(Long id);
 }

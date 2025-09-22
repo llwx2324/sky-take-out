@@ -323,6 +323,26 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CANCELLED);
         orders.setCancelTime(LocalDateTime.now());
         orders.setCancelReason(ordersRejectionDTO.getRejectionReason());
+        //更新支付状态为退款
+        if(orders.getPayStatus().equals(Orders.PAID)){
+            orders.setPayStatus(Orders.REFUND);
+        }
+        orderMapper.update(orders);
+    }
+
+    @Override
+    public void delivery(Long id) {
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if (orders == null) {
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有已接单的订单才能派送
+        if (!orders.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException("该订单不能派送");
+        }
+        //更新订单状态为派送中
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
         orderMapper.update(orders);
     }
 }
