@@ -62,4 +62,5 @@ public interface OrderService {
      * @return
      */
     PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO);
+
 }

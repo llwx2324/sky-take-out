@@ -198,10 +198,19 @@ public class OrderServiceImpl implements OrderService {
         }
         //查询订单明细
         List<OrderDetail> orderDetailList = orderDetailMapper.listByOrderId(orders.getId());
+        //将订单明细中的菜品和数量拼接成字符串赋给orderDishes
+        StringBuilder orderDishes = new StringBuilder();
+        for(OrderDetail orderDetail : orderDetailList){
+            orderDishes.append(orderDetail.getName()).append("x").append(orderDetail.getNumber()).append(",");
+        }
+        if(orderDishes.length() > 0){
+            orderDishes.deleteCharAt(orderDishes.length() - 1); //删除最后一个逗号
+        }
         //封装vo
         OrderVO orderVO = new OrderVO();
         BeanUtils.copyProperties(orders, orderVO);
         orderVO.setOrderDetailList(orderDetailList);
+        orderVO.setOrderDishes(orderDishes.toString());
         return orderVO;
     }
 
