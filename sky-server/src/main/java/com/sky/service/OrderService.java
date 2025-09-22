@@ -1,5 +1,6 @@
 package com.sky.service;
 
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -63,4 +64,9 @@ public interface OrderService {
      */
     PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO);
 
+    /**
+     * 接单
+     * @return
+     */
+    void confirm(OrdersConfirmDTO ordersConfirmDTO);
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -103,7 +104,6 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    @Transactional
     public OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws Exception {
         // 当前登录用户id
         Long userId = BaseContext.getCurrentId();
@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
      *
      * @param outTradeNo
      */
-    @Transactional
+    @Override
     public void paySuccess(String outTradeNo) {
 
         // 根据订单号查询订单
@@ -161,7 +161,6 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    @Transactional
     public PageResult historyOrders(OrdersPageQueryDTO ordersPageQueryDTO){
         List<OrderVO> orderVOList = new ArrayList<>();
 
@@ -189,7 +188,6 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    @Transactional
     public OrderVO getByIdWithOrderDetail(Long id){
         //查询订单
         Orders orders = orderMapper.getById(id);
@@ -219,7 +217,6 @@ public class OrderServiceImpl implements OrderService {
      * @param id
      */
     @Override
-    @Transactional
     public void cancel(Long id){
         //查询订单
         Orders orders = orderMapper.getById(id);
@@ -242,7 +239,6 @@ public class OrderServiceImpl implements OrderService {
      * @param id
      */
     @Override
-    @Transactional
     public void repetition(Long id){
         //查询订单
         Orders orders = orderMapper.getById(id);
@@ -273,7 +269,6 @@ public class OrderServiceImpl implements OrderService {
      * @return
      */
     @Override
-    @Transactional
     public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO){
         List<OrderVO> orderVOList = new ArrayList<>();
 
@@ -298,5 +293,21 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return new PageResult(pageOrdersList.getTotal(), orderVOList);
+    }
+
+    @Override
+    public void confirm(OrdersConfirmDTO ordersConfirmDTO) {
+        //查询订单
+        Orders orders = orderMapper.getById(ordersConfirmDTO.getId());
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+        //只有待接单的订单才能接单
+        if(!orders.getStatus().equals(Orders.TO_BE_CONFIRMED)){
+            throw new OrderBusinessException("该订单不能接单");
+        }
+        //更新订单状态为已接单
+        orders.setStatus(Orders.CONFIRMED);
+        orderMapper.update(orders);
     }
 }
