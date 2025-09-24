@@ -54,3 +54,5 @@ sky:
   wechat:
     appid: ${appid}
     secret: ${secret}
+    notifyUrl: ${sky.wechat.notifyUrl}
+    refundNotifyUrl: ${sky.wechat.refundNotifyUrl}
