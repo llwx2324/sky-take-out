@@ -410,4 +410,19 @@ public class OrderServiceImpl implements OrderService {
         orderStatisticsVO.setDeliveryInProgress(deliveryInProgress);
         return orderStatisticsVO;
     }
+
+    @Override
+    public void reminder(Long id) {
+        //查询订单
+        Orders orders = orderMapper.getById(id);
+        if(orders == null){
+            throw new OrderBusinessException("订单不存在");
+        }
+
+        Map map = new HashMap();
+        map.put("type", 2); // 1代表来单提醒 2代表用户催单
+        map.put("orderId", id);
+        map.put("content", "订单号：" + orders.getNumber());
+        webSocketServer.sendToAllClient(JSONObject.toJSONString(map)); // 给商家端发送催单提醒
+    }
 }
